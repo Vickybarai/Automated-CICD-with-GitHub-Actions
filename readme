@@ -319,7 +319,7 @@ jobs:
 ```
 ❌ BAD - Never do this:
 password = "my_secret_password_123"
-api_key = "sk-abc123xyz456"
+apikey = "demo-key"
 
 ✅ GOOD - Use environment variables:
 password = os.environ.get("DB_PASSWORD")
