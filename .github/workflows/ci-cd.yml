@@ -1,4 +1,3 @@
-
 name: CI-CD Pipeline
 
 on:
@@ -14,97 +13,74 @@ jobs:
 
     steps:
 
+      # ========================================
+      # STAGE 1: CHECKOUT
+      # ========================================
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # - name: Run Gitleaks Scan
-      #   uses: gitleaks/gitleaks-action@v2
 
-      - name: Install Backend Dependencies
+      # ========================================
+      # STAGE 2: CHECK NODE & NPM
+      # ========================================
+      - name: Check Node Environment
         run: |
-          cd backend
+          echo "Node version:"
+          node --version
+
+          echo "NPM version:"
+          npm --version
+
+
+      # ========================================
+      # STAGE 3: INSTALL DEPENDENCIES
+      # ========================================
+      - name: Install Backend Dependencies
+        working-directory: ./backend
+        run: |
           npm install
 
-      - name: Run Lint
+
+      # ========================================
+      # STAGE 4: VERIFY ESLINT INSTALLATION
+      # ========================================
+      - name: Verify ESLint
+        working-directory: ./backend
         run: |
-          cd backend
+          echo "Checking ESLint package..."
+          npm ls eslint
+
+          echo ""
+          echo "Checking ESLint binary..."
+          ls -la node_modules/.bin/eslint
+
+          echo ""
+          echo "Checking ESLint executable..."
+          ls -la node_modules/eslint/bin/eslint.js
+
+
+      # ========================================
+      # STAGE 5: TEST ESLINT DIRECTLY
+      # ========================================
+      - name: Test ESLint
+        working-directory: ./backend
+        run: |
+          echo "Testing ESLint version..."
+          ./node_modules/.bin/eslint --version
+
+
+      # ========================================
+      # STAGE 6: RUN LINT
+      # ========================================
+      - name: Run Backend Lint
+        working-directory: ./backend
+        run: |
           npm run lint
 
-      # =========================
-      # DOCKER LOGIN
-      # =========================
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # =========================
-      # FRONTEND
-      # =========================
-      - name: Build Frontend Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest \
-            ./frontend
+      # ========================================
+      # STAGE 7: GITLEAKS
+      # ========================================
+      - name: Run Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
 
-      - name: Push Frontend Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
-
-      # =========================
-      # BACKEND
-      # =========================
-      - name: Build Backend Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest \
-            ./backend
-
-      - name: Push Backend Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
-
-
-  cd:
-    name: Continuous Deployment (CD)
-    runs-on: ubuntu-latest
-
-    environment: production1
-    needs: ci
-
-    steps:
-
-      - name: Deploy to Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-
-          script: |
-
-            # Pull latest Docker images
-            docker pull ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
-
-            # Stop existing containers
-            docker stop frontend || true
-            docker rm frontend || true
-
-            docker stop backend || true
-            docker rm backend || true
-
-            # Run Backend
-            docker run -d \
-              --name backend \
-              -p 5000:5000 \
-              ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
-
-            # Run Frontend
-            docker run -d \
-              --name frontend \
-              -p 80:80 \
-              ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
