@@ -22,7 +22,7 @@ jobs:
 
       - name: Fix Binary Permissions
         working-directory: ./backend
-        run: chmod -R +x node_modules/.bin
+        run: chmod -R +x node_modules/.bin/eslint
 
       - name: Test ESLint
         working-directory: ./backend
