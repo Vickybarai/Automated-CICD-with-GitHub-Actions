@@ -10,7 +10,7 @@ jobs:
   ci:
     name: Continuous Integration (CI)
     runs-on: ubuntu-latest
-
+    
     steps:
 
       - name: Checkout Code
@@ -20,11 +20,15 @@ jobs:
         working-directory: ./backend
         run: npm install
 
+      - name: Fix Binary Permissions
+        working-directory: ./backend
+        run: chmod -R +x node_modules/.bin
+
       - name: Test ESLint
         working-directory: ./backend
         run: |
           echo "Testing ESLint version..."
-          npx eslint --version
+          ./node_modules/.bin/eslint --version
 
       - name: Run Lint
         working-directory: ./backend
