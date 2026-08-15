@@ -100,6 +100,15 @@ cd Github-action-cicd
 
 ### Step 2: Run Locally with Docker
 
+# Update Backend Connection URL
+
+Before building the containers, you must point the frontend to your server's backend IP.
+
+Open frontend/server.js in your code editor.
+Find the URL connecting to the backend (usually pointing to http://localhost:5000).
+Replace localhost with your EC2 instance's Public IP address.
+(Example: Change http://localhost:5000 to [http://54.123.45.67:5000](http://54.123.45.67:5000))
+
 **Backend:**
 ```bash
 docker build -t github-action-cicd-backend:latest ./backend
