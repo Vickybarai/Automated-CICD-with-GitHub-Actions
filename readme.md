@@ -2,7 +2,7 @@
 ## 📌 What This Project Does
 
 This project demonstrates a complete CI/CD pipeline:
-
+[Cicd pipeline flow](https://github.com/Vickybarai/Github-action-cicd/blob/master/image.png)
 ```
 Push Code to GitHub
        ↓
