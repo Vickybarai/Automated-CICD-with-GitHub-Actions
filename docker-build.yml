@@ -1,0 +1,131 @@
+name: CI-CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  # =========================
+  # CONTINUOUS INTEGRATION
+  # =========================
+  ci:
+    name: Continuous Integration (CI)
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # =========================
+      # GITLEAKS SECURITY SCAN
+      # =========================
+      - name: Run Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_COMMENTS: true
+
+      # =========================
+      # NODE SETUP
+      # =========================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # =========================
+      # BACKEND LINT
+      # =========================
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm install
+
+      - name: Run Backend Lint
+        run: |
+          cd backend
+          npm run lint
+
+      # =========================
+      # DOCKER LOGIN
+      # =========================
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # =========================
+      # FRONTEND DOCKER IMAGE
+      # =========================
+      - name: Build Frontend Image
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest \
+            ./frontend
+
+      - name: Push Frontend Image
+        run: |
+          docker push \
+            ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
+
+      # =========================
+      # BACKEND DOCKER IMAGE
+      # =========================
+      - name: Build Backend Image
+        run: |
+          docker build \
+            -t ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest \
+            ./backend
+
+      - name: Push Backend Image
+        run: |
+          docker push \
+            ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
+
+
+  # =========================
+  # CONTINUOUS DEPLOYMENT
+  # =========================
+  cd:
+    name: Continuous Deployment (CD)
+    runs-on: ubuntu-latest
+
+    needs: ci
+
+    steps:
+
+      - name: Deploy to Server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+
+          script: |
+
+            # Pull latest Docker images
+            docker pull ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
+
+            # Stop existing containers
+            docker stop backend || true
+            docker rm backend || true
+
+            docker stop frontend || true
+            docker rm frontend || true
+
+            # Run Backend
+            docker run -d \
+              --name backend \
+              -p 5000:5000 \
+              ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-backend:latest
+
+            # Run Frontend
+            docker run -d \
+              --name frontend \
+              -p 80:80 \
+              ${{ secrets.DOCKER_USERNAME }}/github-action-cicd-frontend:latest
+
