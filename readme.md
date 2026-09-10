@@ -2,7 +2,7 @@
 ## 📌 What This Project Does
 
 This project demonstrates a complete CI/CD pipeline:
-[Cicd pipeline flow](https://github.com/Vickybarai/Github-action-cicd/blob/master/image.png)
+[Cicd pipeline flow](https://github.com/Vickybarai/Automated-CICD-with-GitHub-Actions/blob/master/image.png)
 ```
 Push Code to GitHub
        ↓
@@ -24,7 +24,7 @@ App is Live! ✅
 ## 🏗️ Project Structure
 
 ```
-Github-action-cicd/
+Automated-CICD-with-GitHub-Actions/
 ├── .github/
 │   └── workflows/
 │       └── main.yml          # ← GitHub Actions CI/CD file
@@ -94,8 +94,8 @@ Github-action-cicd/
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/Vickybarai/Github-action-cicd.git
-cd Github-action-cicd
+git clone https://github.com/Vickybarai/Automated-CICD-with-GitHub-Actions.git
+cd Automated-CICD-with-GitHub-Actions
 ```
 
 ### Step 2: Run Locally with Docker
@@ -340,7 +340,7 @@ api_key = os.environ.get("API_KEY")
 
 ### 1. Check GitHub Actions
 ```
-Go to: https://github.com/Vickybarai/Github-action-cicd/actions
+Go to: https://github.com/Vickybarai/Automated-CICD-with-GitHub-Actions/actions
 ```
 - Green ✅ = Success
 - Red ❌ = Failed (click to see error)
@@ -449,7 +449,7 @@ By completing this project, you practiced:
 
 If you face any issues:
 
-1. Check the [GitHub Actions logs](https://github.com/Vickybarai/Github-action-cicd/actions)
+1. Check the [GitHub Actions logs](https://github.com/Vickybarai/Automated-CICD-with-GitHub-Actions/actions)
 2. Verify all secrets are set correctly
 3. Check Docker Hub for pushed images
 4. SSH into server and check `docker ps -a` and `docker logs`
